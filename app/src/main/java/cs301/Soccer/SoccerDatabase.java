@@ -3,6 +3,10 @@ package cs301.Soccer;
 import android.util.Log;
 import cs301.Soccer.soccerPlayer.SoccerPlayer;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.*;
 
 /**
@@ -181,7 +185,40 @@ public class SoccerDatabase implements SoccerDB {
     // read data from file
     @Override
     public boolean readData(File file) {
-        return file.exists();
+        String first;
+        String last;
+        int uniform;
+        String team;
+        int goals;
+        int redcards;
+        int yellowcards;
+
+        try {
+            Scanner scan = new Scanner(file);
+            while(scan != null) {
+                first = scan.nextLine();
+                last = scan.nextLine();
+                team = scan.nextLine();
+                uniform = scan.nextInt();
+                addPlayer(first, last, uniform, team);
+                goals = scan.nextInt();
+                for(int i=0; i<goals; i++){
+                    bumpGoals(first, last);
+                }
+                redcards = scan.nextInt();
+                for(int i=0; i<redcards; i++){
+                    bumpRedCards(first, last);
+                }
+                yellowcards = scan.nextInt();
+                for(int i=0; i<yellowcards; i++){
+                    bumpYellowCards(first, last);
+                }
+
+            }
+        } catch (FileNotFoundException e) {
+            return false;
+        }
+        return false;
     }
 
     /**
@@ -191,8 +228,23 @@ public class SoccerDatabase implements SoccerDB {
      */
     // write data to file
     @Override
-    public boolean writeData(File file) {
-        return false;
+    public boolean writeData(File file){
+        try {
+            PrintWriter pw = new PrintWriter(file);
+            for(SoccerPlayer current: database.values()){
+                pw.write(logString(current.getFirstName()));
+                pw.write(logString(current.getLastName()));
+                pw.write(logString(current.getTeamName()));
+                pw.write(logString(String.valueOf(current.getUniform())));
+                pw.write(logString(String.valueOf(current.getGoals())));
+                pw.write(logString(String.valueOf(current.getRedCards())));
+                pw.write(logString(String.valueOf(current.getYellowCards())));
+            }
+        } catch (FileNotFoundException e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -213,7 +265,13 @@ public class SoccerDatabase implements SoccerDB {
     // return list of teams
     @Override
     public HashSet<String> getTeams() {
-        return new HashSet<String>();
+        HashSet<String> tempSet = new HashSet<String>();
+        for(SoccerPlayer current: database.values()){
+            if(!tempSet.contains(current.getTeamName())){
+                tempSet.add(current.getTeamName());
+            }
+        }
+        return tempSet;
     }
 
     /**
